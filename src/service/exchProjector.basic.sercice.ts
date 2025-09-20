@@ -7,7 +7,10 @@ import { RateAdjustService } from './rateAdjust.service';
 export class ExchangePojectorService {
   async obtenerCotizacionesUltimoMes(): Promise<Cotizacion[]> {
     // Ejemplo usando la API de series de datos del BCRA / datos.gob.ar
-    const url = 'https://apis.datos.gob.ar/series/api/series/?ids=168.1_T_CAMBIOR_D_0_0_26&start_date=2023-01&limit=5000';
+    const monthFrom = new Date();
+    monthFrom.setMonth(monthFrom.getMonth() - 1);
+    const startDate = monthFrom.toISOString().substring(0, 10); // "YYYY-MM-DD"
+    const url = `https://apis.datos.gob.ar/series/api/series/?ids=168.1_T_CAMBIOR_D_0_0_26&start_date=${startDate.substring(0, 7)}&limit=300`;
     // Nota: deberías ajustar ids, el parámetro para compra y venta si existe, etc.
 
     const resp = await fetch(url);
@@ -20,7 +23,7 @@ export class ExchangePojectorService {
       return {
         fecha: Array.isArray(d) ? d[0] : d.fecha,
         compra, // si es sólo un valor, quizás sea promedio o venta; si tienes ambos, separar
-        venta: compra * 1.0207 // Ejemplo: asumimos margen del 2% entre venta/compra; ajustar si tienes datos reales
+        venta: compra * 1.025 // Ejemplo: asumimos margen del 2% entre venta/compra; ajustar si tienes datos reales
       }
     });
 

@@ -45,12 +45,11 @@ export class RateAdjustService {
                     ...(
                         dolaritoAjustmentTyped[k]?.ccl ??
                         dolaritoAjustmentTyped[k]?.mep ??
-                        dolaritoAjustmentTyped[k]?.informal ??
                         dolaritoAjustmentTyped[k]?.bancos ??
                         dolaritoAjustmentTyped[k]?.oficial ??
-                        { compra: 1, venta: 2 })
+                        { compra: 100000, venta: 102500 })
                 }
             }) ?? [];
-        return exchanges.concat(adjustArray as Array<Cotizacion>);
+        return exchanges.concat(adjustArray as Array<Cotizacion>).sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
     }
 }

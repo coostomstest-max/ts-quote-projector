@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyector de Cotización</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="header__title">📈 Proyector de Cotización</h1>
+            <p class="header__subtitle">Visualiza proyecciones basadas en datos históricos del BCRA</p>
+        </header>
+
+        <section class="card">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="datePicker" class="control-group__label">Seleccionar fecha futura</label>
+                    <input type="date" id="datePicker" class="input">
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="grid grid--indicators">
+                <div class="indicator">
+                    <div class="indicator__label">Valor Actual</div>
+                    <div id="currentValue" class="indicator__value indicator__value--current">--</div>
+                </div>
+                <div class="indicator">
+                    <div class="indicator__label">Valor Proyectado</div>
+                    <div id="projectedValue" class="indicator__value indicator__value--projected">--</div>
+                </div>
+                <div class="indicator">
+                    <div class="indicator__label">Diferencia</div>
+                    <div id="difference" class="indicator__value indicator__value--neutral">--</div>
+                </div>
+                <div class="indicator">
+                    <div class="indicator__label">Días</div>
+                    <div id="daysUntil" class="indicator__value indicator__value--neutral">--</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div id="chartWrapper" class="chart-wrapper">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            <canvas id="chart" class="chart" style="display: none;"></canvas>
+            <div class="legend">
+                <div class="legend__item">
+                    <div class="legend__color legend__color--historical"></div>
+                    <span>Datos históricos</span>
+                </div>
+                <div class="legend__item">
+                    <div class="legend__color legend__color--projected"></div>
+                    <span>Proyección</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -66,14 +66,17 @@ async function handleDateChange() {
     if (!fechaFutura) return;
 
     showLoading();
-    clearError();
 
     try {
+        console.log('Fetching data for date:', fechaFutura);
         const { cotizaciones, proyeccion } = await obtenerDatosProyeccion(fechaFutura);
+        console.log('Data received:', { cotizaciones: cotizaciones?.length, proyeccion });
         chartData = { cotizaciones, proyeccion };
         updateIndicators(proyeccion);
         drawChart(cotizaciones, proyeccion, fechaFutura);
+        showChart();
     } catch (error) {
+        console.error('Error:', error);
         showError(error.message);
     }
 }
@@ -86,11 +89,15 @@ async function loadInitialData() {
 
     try {
         const today = formatDate(new Date());
+        console.log('Loading initial data for today:', today);
         const { cotizaciones, proyeccion } = await obtenerDatosProyeccion(today);
+        console.log('Data received:', { cotizaciones: cotizaciones?.length, proyeccion });
         chartData = { cotizaciones, proyeccion };
         updateIndicators(proyeccion);
         drawChart(cotizaciones, proyeccion, today);
+        showChart();
     } catch (error) {
+        console.error('Error:', error);
         showError(error.message);
     }
 }
@@ -140,24 +147,58 @@ function formatDays(days) {
  * Muestra el estado de carga
  */
 function showLoading() {
-    elements.chartWrapper.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    // Mantener el canvas pero ocultarlo
+    if (elements.chart) {
+        elements.chart.style.display = 'none';
+    }
+    // Mostrar spinner
+    let spinner = elements.chartWrapper.querySelector('.loading');
+    if (!spinner) {
+        spinner = document.createElement('div');
+        spinner.className = 'loading';
+        spinner.innerHTML = '<div class="spinner"></div><span class="loading-text">Cargando datos...</span>';
+        elements.chartWrapper.appendChild(spinner);
+    }
+    spinner.style.display = 'flex';
 }
 
 /**
  * Muestra un mensaje de error
  */
 function showError(message) {
-    elements.chartWrapper.innerHTML = `<div class="error">${message}</div>`;
+    // Ocultar canvas y spinner
+    if (elements.chart) {
+        elements.chart.style.display = 'none';
+    }
+    const spinner = elements.chartWrapper.querySelector('.loading');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+    // Mostrar error
+    let errorEl = elements.chartWrapper.querySelector('.error');
+    if (!errorEl) {
+        errorEl = document.createElement('div');
+        errorEl.className = 'error';
+        elements.chartWrapper.appendChild(errorEl);
+    }
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
 }
 
 /**
- * Limpia mensajes de error
+ * Muestra el canvas del gráfico
  */
-function clearError() {
-    const existingError = elements.chartWrapper.querySelector('.error');
-    if (existingError) {
-        elements.chartWrapper.innerHTML = '<canvas id="chart" class="chart"></canvas>';
-        elements.chart = document.getElementById('chart');
+function showChart() {
+    if (elements.chart) {
+        elements.chart.style.display = 'block';
+    }
+    const spinner = elements.chartWrapper.querySelector('.loading');
+    if (spinner) {
+        spinner.style.display = 'none';
+    }
+    const errorEl = elements.chartWrapper.querySelector('.error');
+    if (errorEl) {
+        errorEl.style.display = 'none';
     }
 }
 
@@ -166,6 +207,8 @@ function clearError() {
  */
 function drawChart(historicalData, projectedData, projectedDate) {
     const canvas = elements.chart;
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     
     // Resize canvas
@@ -177,7 +220,10 @@ function drawChart(historicalData, projectedData, projectedDate) {
 
     ctx.clearRect(0, 0, width, height);
 
-    if (historicalData.length === 0) return;
+    if (historicalData.length === 0) {
+        showError('No hay datos disponibles');
+        return;
+    }
 
     // Calcular rangos
     const allDates = [...historicalData.map(d => new Date(d.fecha)), new Date(projectedDate)];

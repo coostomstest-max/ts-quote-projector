@@ -9,6 +9,8 @@
     "start": "node build/index.js",
     "dev": "ts-node-dev app/index.ts",
     "dev:server": "ts-node-dev app/server.ts",
+    "dev:ui": "npx serve ui -l 8080",
+    "dev:all": "npm run dev:server & npm run dev:ui",
     "build:ui": "tsc -p ui/tsconfig.json"
   },
   "keywords": [],

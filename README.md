@@ -11,7 +11,13 @@ This project fetches historical exchange rate data from the [BCRA/datos.gob.ar A
 ```
 ts-quote-projector/
 ├── app/
-│   └── index.ts              # Application entry point
+│   ├── index.ts              # CLI application entry point
+│   └── server.ts             # API server (Express)
+├── ui/
+│   ├── index.html            # UI entry point
+│   ├── styles.css            # Dark neon styles
+│   ├── app.js                # UI logic (functions only)
+│   └── api.js                # API client (fetch only)
 ├── src/
 │   ├── infra/
 │   │   └── datasets/
@@ -38,52 +44,75 @@ ts-quote-projector/
 npm install
 ```
 
-### Development
+## Running the Application
 
-Run the application in development mode with hot reload:
-
-```bash
-npm run dev
-```
-
-### Build
-
-Compile TypeScript to JavaScript:
+### 1. Start the API Server
 
 ```bash
-npm run tsc
+npm run dev:server
 ```
 
-### Running in Production
+The server will run on `http://localhost:3000` and exposes:
+- `GET /api/cotizaciones` - List of historical exchange rates
+- `GET /api/proyeccion?fecha=YYYY-MM-DD` - Projection for a future date
 
-After building, start the production server:
+### 2. Start the UI (in another terminal)
 
 ```bash
-npm start
+npm run dev:ui
 ```
 
-## Usage
+The UI will be available at `http://localhost:8080`
 
-The main service is `ExchangePojectorService` which provides methods for:
+### 3. Run Both Together
 
-1. **obtenerCotizacionesUltimoMes()** - Fetches exchange rate data from the last 30 days
-2. **calcularTasaDiariaPromedio()** - Calculates average daily exchange rate using logarithmic returns
-3. **proyectarCotizacion(fechaFutura)** - Projects the exchange rate for a given future date
+```bash
+npm run dev:all
+```
 
-### Example
+## Development Commands
 
-```typescript
-import { ExchangePojectorService } from "../src/service/exchProjector.basic.sercice";
+| Command | Description |
+|---------|-------------|
+| `npm run dev:server` | Start the TypeScript API server |
+| `npm run dev:ui` | Serve the UI on port 8080 |
+| `npm run dev:all` | Run server and UI together |
+| `npm run dev` | Run original CLI app |
+| `npm run tsc` | Compile TypeScript |
 
-const projector = new ExchangePojectorService();
+## Architecture
 
-const nDays = 1;
-const today = new Date(new Date(Date.now() + 86400000 * nDays)).toISOString().substring(0, 10);
-projector.proyectarCotizacion(today).then(res => {
-    console.log("Proyección para ", today, ": ", res);
-}).catch(err => {
-    console.error("Error en proyección:", err);
-});
+```
+┌─────────────────────────────────────────────────────────┐
+│                         UI                               │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐                   │
+│  │index.html│ │styles.css│ │app.js  │                   │
+│  └────┬────┘  └─────────┘  └────┬────┘                   │
+│       │                         │                        │
+│       └───────────┬─────────────┘                        │
+│                   ▼                                      │
+│            ┌──────────┐                                  │
+│            │ api.js   │ (fetch only)                     │
+│            └────┬─────┘                                  │
+└─────────────────┼────────────────────────────────────────┘
+                  │ HTTP
+┌─────────────────▼────────────────────────────────────────┐
+│              app/server.ts (TypeScript)                   │
+│                   ┌───────────┐                          │
+│                   │ Express   │                          │
+│                   └─────┬─────┘                          │
+└─────────────────────────┼────────────────────────────────┘
+                          │ consumes
+┌─────────────────────────▼────────────────────────────────┐
+│                     /service                             │
+│  ┌─────────────────┐  ┌─────────────────┐               │
+│  │ ExchangeProjector│  │ RateAdjustService│               │
+│  └────────┬────────┘  └─────────────────┘               │
+└───────────┼──────────────────────────────────────────────┘
+            │ fetches
+┌───────────▼──────────────────────────────────────────────┐
+│            BCRA / datos.gob.ar API                        │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ## Data Source
@@ -94,7 +123,7 @@ The service uses the Argentine public data API for exchange rate information:
 
 ## How Projection Works
 
-1. Fetches the last 30 days of exchange rate data
+1. Fetches the last 12 months of exchange rate data
 2. Calculates daily logarithmic returns for both buy and sell rates
 3. Computes the geometric mean of daily returns to estimate average daily rate
 4. Applies compound growth formula to project future rates

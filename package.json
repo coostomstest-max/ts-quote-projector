@@ -7,17 +7,23 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc",
     "start": "node build/index.js",
-    "dev": "ts-node-dev app/index.ts"
+    "dev": "ts-node-dev app/index.ts",
+    "dev:server": "ts-node-dev app/server.ts",
+    "build:ui": "tsc -p ui/tsconfig.json"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/node-fetch": "^2.6.13",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
     "node-fetch": "^2.7.0"
   }
 }

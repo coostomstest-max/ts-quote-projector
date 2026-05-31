@@ -8,9 +8,9 @@ export class ExchangePojectorService {
   async obtenerCotizacionesUltimoMes(): Promise<Cotizacion[]> {
     // Ejemplo usando la API de series de datos del BCRA / datos.gob.ar
     const monthFrom = new Date();
-    monthFrom.setMonth(monthFrom.getMonth() - 1);
+    monthFrom.setMonth(monthFrom.getMonth() - 12);
     const startDate = monthFrom.toISOString().substring(0, 10); // "YYYY-MM-DD"
-    const url = `https://apis.datos.gob.ar/series/api/series/?ids=168.1_T_CAMBIOR_D_0_0_26&start_date=${startDate.substring(0, 7)}&limit=300`;
+    const url = `https://apis.datos.gob.ar/series/api/series/?ids=168.1_T_CAMBIOR_D_0_0_26&start_date=${startDate.substring(0, 7)}&limit=320`;
     // Nota: deberías ajustar ids, el parámetro para compra y venta si existe, etc.
 
     const resp = await fetch(url);

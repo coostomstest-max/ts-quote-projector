@@ -2,10 +2,22 @@ import { ExchangePojectorService } from "../src/service/exchProjector.basic.serc
 
 const projector = new ExchangePojectorService();
 
-const nDays = 1;
-const today = new Date(new Date(Date.now() + 86400000 * nDays)).toISOString().substring(0, 10);
-projector.proyectarCotizacion(today).then(res => {
-    console.log("Proyección para ", today, ": ", res);
-}).catch(err => {
-    console.error("Error en proyección:", err);
-});
+const maxDays = 365;
+
+
+
+const results: any[] = [];
+for (let nDays = 1; nDays <= maxDays; nDays++) {
+    const date = new Date(new Date(Date.now() + 86400000 * nDays)).toISOString().substring(0, 10);
+    projector.proyectarCotizacion(date).then(res => {
+        const data = { fecha: date, ...res };
+        results.push(data);
+        console.log(data)
+    }).catch(err => {
+        const errorData = { fecha: date, compra: 0, venta: 0, error: err.message || "Error desconocido" };
+        results.push(errorData);
+        console.error(errorData);
+    })
+}
+
+

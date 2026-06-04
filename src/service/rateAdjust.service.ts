@@ -43,10 +43,10 @@ export class RateAdjustService {
                 return {
                     fecha: this.parseDateToISO(k),
                     ...(
+                        dolaritoAjustmentTyped[k]?.oficial ??
                         dolaritoAjustmentTyped[k]?.ccl ??
                         dolaritoAjustmentTyped[k]?.mep ??
                         dolaritoAjustmentTyped[k]?.bancos ??
-                        dolaritoAjustmentTyped[k]?.oficial ??
                         { compra: 100000, venta: 102500 })
                 }
             }) ?? [];

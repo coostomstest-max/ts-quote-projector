@@ -3,7 +3,7 @@
  * Solo hace fetch, no contiene lógica de negocio
  */
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://localhost:3001/api';
 
 /**
  * Obtiene cotizaciones históricas del servidor
@@ -12,11 +12,11 @@ const API_BASE = 'http://localhost:3000/api';
 async function obtenerCotizaciones() {
     const resp = await fetch(`${API_BASE}/cotizaciones`);
     const json = await resp.json();
-    
+
     if (!json.success) {
         throw new Error(json.error || 'Error al obtener cotizaciones');
     }
-    
+
     return json.data;
 }
 
@@ -28,11 +28,11 @@ async function obtenerCotizaciones() {
 async function obtenerProyeccion(fechaFutura) {
     const resp = await fetch(`${API_BASE}/proyeccion?fecha=${fechaFutura}`);
     const json = await resp.json();
-    
+
     if (!json.success) {
         throw new Error(json.error || 'Error al obtener proyección');
     }
-    
+
     return json.data;
 }
 

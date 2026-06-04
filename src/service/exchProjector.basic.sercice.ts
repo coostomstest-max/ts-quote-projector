@@ -61,6 +61,27 @@ export class ExchangePojectorService {
     return { tasaCompra, tasaVenta };
   }
 
+  determineWithPastDate(cotizaciones: Cotizacion[], fecha: string): { compra: number, venta: number } {
+    let aproxCotizacion = cotizaciones.filter(c => c.fecha === fecha)
+    if (Array.isArray(aproxCotizacion) && aproxCotizacion.length > 0) {
+      return {
+        compra: aproxCotizacion[0]?.compra ?? 0,
+        venta: aproxCotizacion[0]?.venta ?? 0
+      };
+    }
+    aproxCotizacion = cotizaciones.filter(c => c.fecha?.substring(0, 7) <= fecha)
+      ?.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());;
+    if (Array.isArray(aproxCotizacion) && aproxCotizacion.length > 0) {
+      const ultimaCotizacion = aproxCotizacion[aproxCotizacion.length - 1];
+      return {
+        compra: ultimaCotizacion?.compra ?? 0,
+        venta: ultimaCotizacion?.venta ?? 0
+      };
+    }
+
+    throw new Error("No se puede determinar la tasa para la fecha dada");
+  }
+
   async proyectarCotizacion(fechaFutura: string): Promise<{ compra: number, venta: number }> {
     const cotizaciones = await this.obtenerCotizacionesUltimoMes();
     const { tasaCompra, tasaVenta } = this.calcularTasaDiariaPromedio(RateAdjustService.getInstance().adjustExchanges(cotizaciones));
@@ -70,7 +91,7 @@ export class ExchangePojectorService {
     const diffDias = (futuro.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
 
     if (diffDias < 0) {
-      throw new Error("La fecha futura debe ser posterior al día de hoy");
+      return this.determineWithPastDate(cotizaciones, fechaFutura);
     }
 
     // última cotización conocida

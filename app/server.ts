@@ -4,7 +4,7 @@ import { ExchangePojectorService } from '../src/service/exchProjector.basic.serc
 import { RateAdjustService } from '../src/service/rateAdjust.service';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const projector = new ExchangePojectorService();
 const rateAdjust = RateAdjustService.getInstance();
@@ -87,6 +87,64 @@ app.get('/api/proyeccion', async (req, res) => {
                 ventaProyectada: proyVenta,
                 diffDias: Math.round(diffDias),
                 variacionPorcentual: ((proyCompra - ultima.compra) / ultima.compra) * 100,
+                cotizaciones: cotizacionesAjustadas
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Error desconocido'
+        });
+    }
+});
+
+/**
+ * GET /api/proyeccion?fecha=YYYY-MM-DD
+ * Proyecta cotización para una fecha futura
+ */
+app.get('/api/proyeccion/experimental', async (req, res) => {
+    try {
+        const { fecha } = req.query;
+
+        if (!fecha || typeof fecha !== 'string') {
+            res.status(400).json({
+                success: false,
+                error: 'Parámetro "fecha" es requerido (YYYY-MM-DD)'
+            });
+            return;
+        }
+
+        const cotizaciones = await projector.obtenerCotizacionesUltimoMes();
+        const cotizacionesAjustadas = rateAdjust.adjustExchanges(cotizaciones);
+
+        const hoy = new Date();
+        const futuro = new Date(fecha);
+        const diffDias = (futuro.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
+
+
+
+        const ultima = cotizacionesAjustadas[cotizacionesAjustadas.length - 1];
+        if (!ultima) {
+            res.status(500).json({
+                success: false,
+                error: 'No se pudo obtener la última cotización'
+            });
+            return;
+        }
+
+        const { compra, venta } = await projector.proyectarCotizacion(fecha);
+
+        res.json({
+            success: true,
+            data: {
+                fechaActual: ultima.fecha,
+                fechaFutura: fecha,
+                compraActual: ultima.compra,
+                ventaActual: ultima.venta,
+                compraProyectada: compra,
+                ventaProyectada: venta,
+                diffDias: Math.round(diffDias),
+                variacionPorcentual: Math.abs((venta - ultima.compra) / ultima.compra) * 100,
                 cotizaciones: cotizacionesAjustadas
             }
         });

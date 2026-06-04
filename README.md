@@ -52,7 +52,7 @@ npm install
 npm run dev:server
 ```
 
-The server will run on `http://localhost:3000` and exposes:
+The server will run on `http://localhost:3001` and exposes:
 - `GET /api/cotizaciones` - List of historical exchange rates
 - `GET /api/proyeccion?fecha=YYYY-MM-DD` - Projection for a future date
 

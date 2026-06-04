@@ -208,12 +208,12 @@ function showChart() {
 function drawChart(historicalData, projectedData, projectedDate) {
     const canvas = elements.chart;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
-    
+
     // Resize canvas
     resizeCanvas(canvas);
-    
+
     const width = canvas.width;
     const height = canvas.height;
     const padding = { top: 30, right: 30, bottom: 50, left: 70 };
@@ -228,7 +228,7 @@ function drawChart(historicalData, projectedData, projectedDate) {
     // Calcular rangos
     const allDates = [...historicalData.map(d => new Date(d.fecha)), new Date(projectedDate)];
     const allValues = [...historicalData.map(d => d.compra), projectedData.proyCompra];
-    
+
     const minDate = Math.min(...allDates.map(d => d.getTime()));
     const maxDate = Math.max(...allDates.map(d => d.getTime()));
     const minValue = Math.min(...allValues) * 0.97;
@@ -288,12 +288,12 @@ function drawChart(historicalData, projectedData, projectedDate) {
     ctx.strokeStyle = '#10b981';
     ctx.lineWidth = 2.5;
     ctx.setLineDash([8, 5]);
-    
+
     const projStartX = xScale(new Date(lastHistorical.fecha));
     const projStartY = yScale(lastHistorical.compra);
     const projEndX = xScale(new Date(projectedDate));
     const projEndY = yScale(projectedData.proyCompra);
-    
+
     ctx.moveTo(projStartX, projStartY);
     ctx.lineTo(projEndX, projEndY);
     ctx.stroke();
@@ -312,7 +312,7 @@ function drawChart(historicalData, projectedData, projectedDate) {
     ctx.fillStyle = '#64748b';
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
-    
+
     const labelCount = Math.min(5, historicalData.length);
     const step = Math.max(1, Math.floor(historicalData.length / labelCount));
     for (let i = 0; i < historicalData.length; i += step) {

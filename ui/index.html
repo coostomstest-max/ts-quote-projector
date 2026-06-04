@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proyector de Cotización</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -48,8 +50,8 @@
                 <div class="loading">
                     <div class="spinner"></div>
                 </div>
+                <canvas id="chart" class="chart" style="display: none;"></canvas>
             </div>
-            <canvas id="chart" class="chart" style="display: none;"></canvas>
             <div class="legend">
                 <div class="legend__item">
                     <div class="legend__color legend__color--historical"></div>
@@ -65,4 +67,5 @@
 
     <script type="module" src="app.js"></script>
 </body>
+
 </html>

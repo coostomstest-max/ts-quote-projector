@@ -1,4 +1,4 @@
-import { ExchangePojectorService } from "../src/service/exchProjector.basic.sercice";
+import { ExchangePojectorService } from "../src/service/exchProjector.basic.service";
 
 const projector = new ExchangePojectorService();
 

@@ -23,10 +23,11 @@ async function obtenerCotizaciones() {
 /**
  * Obtiene proyección para una fecha futura
  * @param {string} fechaFutura - Fecha en formato YYYY-MM-DD
+ * @param {string} algoritmo - Algoritmo: 'ses' o 'crecimiento_compuesto'
  * @returns {Promise<Object>} Datos de proyección
  */
-async function obtenerProyeccion(fechaFutura) {
-    const resp = await fetch(`${API_BASE}/proyeccion?fecha=${fechaFutura}`);
+async function obtenerProyeccion(fechaFutura, algoritmo = 'ses') {
+    const resp = await fetch(`${API_BASE}/proyeccion?fecha=${fechaFutura}&algoritmo=${algoritmo}`);
     const json = await resp.json();
 
     if (!json.success) {
@@ -39,16 +40,21 @@ async function obtenerProyeccion(fechaFutura) {
 /**
  * Obtiene todos los datos necesarios para la UI
  * @param {string} fechaFutura - Fecha futura seleccionada
+ * @param {string} algoritmo - Algoritmo: 'ses' o 'crecimiento_compuesto'
  * @returns {Promise<{cotizaciones: Array, proyeccion: Object}>}
  */
-async function obtenerDatosProyeccion(fechaFutura) {
-    const proyeccion = await obtenerProyeccion(fechaFutura);
+async function obtenerDatosProyeccion(fechaFutura, algoritmo = 'ses') {
+    const proyeccion = await obtenerProyeccion(fechaFutura, algoritmo);
     return {
         cotizaciones: proyeccion.cotizaciones,
         proyeccion: {
             proyCompra: proyeccion.compraProyectada,
             proyVenta: proyeccion.ventaProyectada,
             diffDias: proyeccion.diffDias,
+            secuenciaCompra: proyeccion.secuenciaCompra || [],
+            secuenciaVenta: proyeccion.secuenciaVenta || [],
+            interval: proyeccion.intervalo || 1,
+            dias: proyeccion.dias || 0,
             ultima: {
                 fecha: proyeccion.fechaActual,
                 compra: proyeccion.compraActual,

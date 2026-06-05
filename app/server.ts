@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { ExchangePojectorService } from '../src/service/exchProjector.basic.sercice';
+import { ExchangePojectorService } from '../src/service/exchProjector.basic.service';
 import { RateAdjustService } from '../src/service/rateAdjust.service';
 
 const app = express();
@@ -33,12 +33,12 @@ app.get('/api/cotizaciones', async (_req, res) => {
 });
 
 /**
- * GET /api/proyeccion?fecha=YYYY-MM-DD
+ * GET /api/proyeccion?fecha=YYYY-MM-DD&algoritmo=ses|crecimiento_compuesto
  * Proyecta cotización para una fecha futura
  */
 app.get('/api/proyeccion', async (req, res) => {
     try {
-        const { fecha } = req.query;
+        const { fecha, algoritmo } = req.query;
 
         if (!fecha || typeof fecha !== 'string') {
             res.status(400).json({
@@ -50,19 +50,6 @@ app.get('/api/proyeccion', async (req, res) => {
 
         const cotizaciones = await projector.obtenerCotizacionesUltimoMes();
         const cotizacionesAjustadas = rateAdjust.adjustExchanges(cotizaciones);
-        const { tasaCompra, tasaVenta } = projector.calcularTasaDiariaPromedio(cotizacionesAjustadas);
-
-        const hoy = new Date();
-        const futuro = new Date(fecha);
-        const diffDias = (futuro.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
-
-        if (diffDias < 0) {
-            res.status(400).json({
-                success: false,
-                error: 'La fecha futura debe ser posterior al día de hoy'
-            });
-            return;
-        }
 
         const ultima = cotizacionesAjustadas[cotizacionesAjustadas.length - 1];
         if (!ultima) {
@@ -73,8 +60,20 @@ app.get('/api/proyeccion', async (req, res) => {
             return;
         }
 
-        const proyCompra = ultima.compra * Math.pow(1 + tasaCompra, diffDias);
-        const proyVenta = ultima.venta * Math.pow(1 + tasaVenta, diffDias);
+        const algo = (typeof algoritmo === 'string' && (algoritmo === 'ses' || algoritmo === 'crecimiento_compuesto' || algoritmo === 'spline_monotono'))
+            ? algoritmo : 'ses';
+
+        const resultado = await projector.proyectarCotizacion(fecha, algo);
+        const compraProyectada = resultado.compra;
+        const ventaProyectada = resultado.venta;
+        const secuenciaCompra = resultado.secuenciaCompra;
+        const secuenciaVenta = resultado.secuenciaVenta;
+        const intervalo = resultado.intervalo;
+        const dias = resultado.dias;
+
+        const hoy = new Date();
+        const futuro = new Date(fecha);
+        const diffDias = (futuro.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24);
 
         res.json({
             success: true,
@@ -83,11 +82,15 @@ app.get('/api/proyeccion', async (req, res) => {
                 fechaFutura: fecha,
                 compraActual: ultima.compra,
                 ventaActual: ultima.venta,
-                compraProyectada: proyCompra,
-                ventaProyectada: proyVenta,
+                compraProyectada,
+                ventaProyectada,
+                secuenciaCompra,
+                secuenciaVenta,
+                dias,
                 diffDias: Math.round(diffDias),
-                variacionPorcentual: ((proyCompra - ultima.compra) / ultima.compra) * 100,
-                cotizaciones: cotizacionesAjustadas
+                variacionPorcentual: ((compraProyectada - ultima.compra) / ultima.compra) * 100,
+                cotizaciones: cotizacionesAjustadas,
+                algoritmo: algo
             }
         });
     } catch (error) {
